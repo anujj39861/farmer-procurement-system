@@ -127,7 +127,7 @@ const ROLE_THEMES = {
 const ROLE_KEYS = ['farmer', 'operator', 'quality', 'supervisor', 'admin'];
 
 export default function LoginPage() {
-  const { login, register } = useAuth();
+  const { login, register, logout } = useAuth();
   const [selectedRole, setSelectedRole] = useState('farmer');
   const [isRegister, setIsRegister] = useState(false);
   const [phone, setPhone] = useState('');
@@ -150,7 +150,13 @@ export default function LoginPage() {
     setErrorMsg('');
     setSubmitting(true);
     try {
-      await login(phone, password);
+      const userData = await login(phone, password);
+      // Check if user's role matches the selected tab
+      if (userData.role !== selectedRole) {
+        logout();
+        const correctTab = ROLE_THEMES[userData.role]?.label || userData.role;
+        setErrorMsg(`Yeh account "${correctTab}" role ka hai. Please "${correctTab}" tab se login karein.`);
+      }
     } catch (err) {
       setErrorMsg(err.response?.data?.detail || 'Invalid phone or password');
     } finally {
