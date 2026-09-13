@@ -15,7 +15,7 @@ import {
 export default function FarmerPortal() {
   const { user } = useAuth();
   const [centres, setCentres] = useState([]);
-  const [selectedCentre, setSelectedCentre] = useState(1);
+  const [selectedCentre, setSelectedCentre] = useState(user?.centre_id || 1);
   const [currentToken, setCurrentToken] = useState(null);
   const [procurement, setProcurement] = useState(null);
   const [showQR, setShowQR] = useState(false);
@@ -44,16 +44,19 @@ export default function FarmerPortal() {
       setCentres(cRes.data);
 
       const qRes = await fetchCentreQueue(selectedCentre);
-      const queueList = qRes.data;
-      const myTok = queueList.find(t => t.farmer_id === user.id) || queueList[0];
-      if (myTok) {
-        setCurrentToken(myTok);
-        if (myTok.status === 'completed') {
-          try {
-            const pRes = await fetchProcurementByToken(myTok.id);
-            setProcurement(pRes.data);
-          } catch (e) {}
-        }
+      const queueList = qRes.data || [];
+      // Only pick tokens that genuinely belong to the logged-in farmer (latest one first)
+      const userTokens = queueList.filter(t => t.farmer_id === user.id);
+      const myTok = userTokens.length > 0 ? userTokens[userTokens.length - 1] : null;
+      
+      setCurrentToken(myTok);
+      if (myTok && myTok.status === 'completed') {
+        try {
+          const pRes = await fetchProcurementByToken(myTok.id);
+          setProcurement(pRes.data);
+        } catch (e) {}
+      } else if (!myTok) {
+        setProcurement(null);
       }
 
       const issRes = await fetchIssues(user.id);
