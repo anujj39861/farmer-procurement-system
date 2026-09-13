@@ -1,25 +1,37 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import {
-  fetchPendingCorrections, verifyWeightCorrection, fetchAuditLogs, checkAnomalyML
+  fetchPendingCorrections, verifyWeightCorrection, fetchAuditLogs, checkAnomalyML, fetchCentres
 } from '../../services/api';
 import {
   ShieldAlert, CheckCircle2, XCircle, AlertTriangle, History,
-  FileCheck, Lock, Sparkles, Scale, RefreshCw
+  FileCheck, Lock, Sparkles, Scale, RefreshCw, Building2
 } from 'lucide-react';
 
 export default function SupervisorPortal() {
-  const { user } = useAuth();
+  const { user, selectedCentreId } = useAuth();
+  const [centres, setCentres] = useState([]);
+  const [selectedMandi, setSelectedMandi] = useState('all');
   const [pendingCorrections, setPendingCorrections] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
   const [anomalyTestResult, setAnomalyTestResult] = useState(null);
   const [notesDict, setNotesDict] = useState({});
 
   useEffect(() => {
+    loadCentres();
     loadData();
-    const interval = setInterval(loadData, 5000);
+    const interval = setInterval(loadData, 4000);
     return () => clearInterval(interval);
-  }, []);
+  }, [selectedCentreId, selectedMandi]);
+
+  const loadCentres = async () => {
+    try {
+      const res = await fetchCentres();
+      setCentres(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const loadData = async () => {
     try {
@@ -63,20 +75,61 @@ export default function SupervisorPortal() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-3xl p-6 shadow-xl flex items-center justify-between">
-        <div>
-          <span className="bg-amber-400/20 text-amber-300 text-xs px-3 py-1 rounded-full font-semibold border border-amber-400/30 flex items-center gap-1 w-fit">
-            <ShieldAlert className="w-3.5 h-3.5" /> Supervisor Oversight & Governance Desk
-          </span>
-          <h2 className="text-2xl font-bold text-white mt-2">Anti-Fraud & Weight Correction Authorization</h2>
-          <p className="text-xs text-indigo-200 mt-1">Review locked weight modifications, investigate AI risk flags, and inspect the immutable audit log.</p>
+      <div className="bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-3xl p-6 shadow-xl">
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <span className="bg-amber-400/20 text-amber-300 text-xs px-3 py-1 rounded-full font-semibold border border-amber-400/30 flex items-center gap-1 w-fit">
+              <ShieldAlert className="w-3.5 h-3.5" /> Supervisor Oversight & Governance Desk
+            </span>
+            <h2 className="text-2xl font-bold text-white mt-2">Anti-Fraud & Weight Correction Authorization</h2>
+            <p className="text-xs text-indigo-200 mt-1">Review locked weight modifications, investigate AI risk flags, and inspect the immutable audit log.</p>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <div className="bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20 text-right">
+              <span className="text-[10px] text-indigo-200 uppercase font-semibold block">Supervised Centre</span>
+              <div className="font-bold text-sm text-white flex items-center gap-1.5 justify-end mt-0.5">
+                <Building2 className="w-4 h-4 text-amber-300" />
+                <span>
+                  {centres.find(c => c.id === (user?.centre_id || selectedCentreId))?.name || `Centre #${user?.centre_id || selectedCentreId}`}
+                </span>
+              </div>
+              <span className="text-[10px] text-indigo-300 font-mono">
+                Centre ID: #{user?.centre_id || selectedCentreId} • {centres.find(c => c.id === (user?.centre_id || selectedCentreId))?.district || 'Haryana'}
+              </span>
+            </div>
+
+            <button
+              onClick={loadData}
+              className="p-2.5 bg-indigo-800/60 hover:bg-indigo-700 text-indigo-200 rounded-xl border border-indigo-600 transition text-xs font-semibold flex items-center gap-1 h-fit"
+            >
+              <RefreshCw className="w-4 h-4" /> Refresh
+            </button>
+          </div>
         </div>
-        <button
-          onClick={loadData}
-          className="p-2.5 bg-indigo-800/60 hover:bg-indigo-700 text-indigo-200 rounded-xl border border-indigo-600 transition text-xs font-semibold flex items-center gap-1"
-        >
-          <RefreshCw className="w-4 h-4" /> Refresh Feeds
-        </button>
+
+        {/* Mandi Selector Tabs */}
+        <div className="mt-4 pt-3 border-t border-indigo-900/60 flex items-center gap-2 overflow-x-auto">
+          <span className="text-xs font-bold text-indigo-200 uppercase">Filter by Mandi:</span>
+          {[
+            { key: 'all', label: 'All Mandis' },
+            { key: 'Karnal Mandi', label: 'Karnal Mandi' },
+            { key: 'Ludhiana Mandi', label: 'Ludhiana Mandi' },
+            { key: 'Bareilly Mandi', label: 'Bareilly Mandi' }
+          ].map(m => (
+            <button
+              key={m.key}
+              onClick={() => setSelectedMandi(m.key)}
+              className={`px-3 py-1 rounded-xl text-xs font-bold transition ${
+                selectedMandi === m.key
+                  ? 'bg-amber-400 text-slate-950 shadow-md scale-105'
+                  : 'bg-indigo-900/60 text-indigo-200 hover:bg-indigo-800'
+              }`}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Stats Cards */}

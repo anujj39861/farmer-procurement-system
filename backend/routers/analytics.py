@@ -59,11 +59,29 @@ def get_chart_data(db: Session = Depends(get_db)):
     for s in statuses:
         status_dist[s] = db.query(Token).filter(Token.status == s).count()
 
+    # Mandi wise procurement and token breakdown
+    mandis = ["Karnal Mandi", "Ludhiana Mandi", "Bareilly Mandi"]
+    mandi_data = []
+    for m in mandis:
+        m_tokens = db.query(Token).filter(Token.mandi_name == m).all()
+        m_token_ids = [t.id for t in m_tokens]
+        procs = db.query(ProcurementRecord).filter(ProcurementRecord.token_id.in_(m_token_ids)).all() if m_token_ids else []
+        vol = sum(p.verified_weight_kg for p in procs) if procs else 0.0
+        payout = sum(p.total_amount for p in procs) if procs else 0.0
+        mandi_data.append({
+            "mandi_name": m,
+            "tokens_count": len(m_tokens),
+            "completed_count": len(procs),
+            "total_procured_kg": round(vol, 1),
+            "total_payout_inr": round(payout, 2)
+        })
+
     # Fraud / Anomaly flags summary
     audits_flagged = db.query(AuditLog).filter(AuditLog.action.in_(["CORRECTION_REQUEST", "FLAG_ANOMALY"])).count()
 
     return {
         "centre_analytics": centre_data,
+        "mandi_analytics": mandi_data,
         "queue_status_distribution": status_dist,
         "suspicious_events_count": audits_flagged
     }

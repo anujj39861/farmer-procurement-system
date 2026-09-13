@@ -139,6 +139,38 @@ export default function AdminPortal() {
                 </tbody>
               </table>
             </div>
+
+            {/* Mandi Wise Breakdown Section */}
+            {charts.mandi_analytics && (
+              <div className="pt-4 border-t border-gray-100 space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-bold text-gray-900 text-xs flex items-center gap-1.5">
+                    <Building2 className="w-4 h-4 text-blue-600" /> Mandi / Collection Point Breakdown (Centre #1 Circle)
+                  </h4>
+                  <span className="text-[11px] text-gray-400">Independent Mandi Queues</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {charts.mandi_analytics.map(m => (
+                    <div key={m.mandi_name} className="p-3 bg-blue-50/50 rounded-xl border border-blue-200 space-y-1">
+                      <div className="font-bold text-blue-950 text-xs flex items-center justify-between">
+                        <span>{m.mandi_name}</span>
+                        <span className="bg-blue-200 text-blue-900 text-[10px] px-1.5 py-0.5 rounded-full font-extrabold">
+                          {m.tokens_count} Tokens
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-gray-600 flex justify-between">
+                        <span>Procured Volume:</span>
+                        <span className="font-bold font-mono text-gray-900">{m.total_procured_kg} kg</span>
+                      </div>
+                      <div className="text-[11px] text-gray-600 flex justify-between">
+                        <span>Disbursed Payout:</span>
+                        <span className="font-bold font-mono text-emerald-700">₹{m.total_payout_inr?.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Status Distribution Breakdown (4 cols) */}
