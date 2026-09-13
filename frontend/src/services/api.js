@@ -27,6 +27,7 @@ export const fetchCentreQueue = (centreId, status) => api.get(`/queue/${centreId
 export const patchQueueStatus = (tokenId, status, notes) => api.patch(`/queue/${tokenId}`, { status, notes });
 export const createToken = (data) => api.post('/tokens', data);
 export const fetchToken = (tokenId) => api.get(`/tokens/${tokenId}`);
+export const fetchFarmerTokens = (farmerId) => api.get(`/tokens/farmer/${farmerId}`);
 export const submitQuality = (data) => api.post('/quality', data);
 export const submitWeighing = (data) => api.post('/weighing', data);
 export const requestWeightCorrection = (tokenId, data) => api.post(`/weighing/${tokenId}/correct`, data);

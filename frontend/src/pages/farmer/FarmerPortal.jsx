@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import {
   fetchCentres, fetchCentreQueue, createToken, raiseIssue, fetchIssues,
-  classifyComplaintNLP, fetchProcurementByToken
+  classifyComplaintNLP, fetchProcurementByToken, fetchFarmerTokens
 } from '../../services/api';
 import StatusTimeline from '../../components/StatusTimeline';
 import QRModal from '../../components/QRModal';
@@ -47,9 +47,20 @@ export default function FarmerPortal() {
       const qRes = await fetchCentreQueue(selectedCentre);
       const queueList = qRes.data || [];
       setCentreQueue(queueList);
-      // Only pick tokens that genuinely belong to the logged-in farmer (latest one first)
-      const userTokens = queueList.filter(t => t.farmer_id === user.id);
-      const myTok = userTokens.length > 0 ? userTokens[userTokens.length - 1] : null;
+
+      // Fetch farmer's own tokens directly from the dedicated farmer tokens API
+      let myTok = null;
+      try {
+        const ftRes = await fetchFarmerTokens(user.id);
+        const myAllTokens = ftRes.data || [];
+        if (myAllTokens.length > 0) {
+          myTok = myAllTokens[myAllTokens.length - 1]; // latest token
+        }
+      } catch (err) {
+        // Fallback to queue list if endpoint fails
+        const userTokens = queueList.filter(t => String(t.farmer_id) === String(user.id));
+        myTok = userTokens.length > 0 ? userTokens[userTokens.length - 1] : null;
+      }
       
       setCurrentToken(myTok);
       if (myTok && myTok.status === 'completed') {
