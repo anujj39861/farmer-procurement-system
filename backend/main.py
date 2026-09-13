@@ -116,43 +116,7 @@ def startup_seed_and_train():
             db.add_all([u_farmer, u_operator, u_quality, u_supervisor, u_admin])
             db.commit()
 
-            # Create Schedules
-            s1 = Schedule(centre_id=c1.id, date="2026-09-08", total_slots=50, booked_slots=5, crop_type="Wheat")
-            s2 = Schedule(centre_id=c2.id, date="2026-09-08", total_slots=60, booked_slots=2, crop_type="Paddy")
-            db.add_all([s1, s2])
-            db.commit()
-
-            # Create Bookings & Tokens
-            b1 = Booking(schedule_id=s1.id, centre_id=c1.id, farmer_id=u_farmer.id, time_slot="09:00 - 10:00 AM", expected_crop="Wheat", expected_qty_kg=500.0, status="checked_in")
-            db.add(b1)
-            db.commit()
-
-            t1 = Token(booking_id=b1.id, centre_id=c1.id, farmer_id=u_farmer.id, token_number=42, token_code="T-20260908-042", status="in_weighing", position=1, estimated_wait_min=15.0, delay_risk="Low")
-            t2 = Token(booking_id=None, centre_id=c1.id, farmer_id=u_farmer.id, token_number=43, token_code="T-20260908-043", status="waiting", position=2, estimated_wait_min=25.0, delay_risk="Low")
-            t3 = Token(booking_id=None, centre_id=c1.id, farmer_id=u_farmer.id, token_number=44, token_code="T-20260908-044", status="waiting", position=3, estimated_wait_min=35.0, delay_risk="Medium")
-            db.add_all([t1, t2, t3])
-            db.commit()
-
-            # Quality Record for t1
-            q1 = QualityRecord(token_id=t1.id, inspector_id=u_quality.id, moisture_pct=11.5, foreign_matter_pct=0.8, damaged_grains_pct=0.2, grade="Grade A", decision="Pass", evidence_notes="Clean dry wheat grains.")
-            db.add(q1)
-            db.commit()
-
-            # Weight Record for t1 (with sample correction request)
-            w1 = WeighingRecord(token_id=t1.id, operator_id=u_operator.id, scale_id="SCALE-KARNAL-01", gross_weight_kg=520.0, tare_weight_kg=20.0, net_weight_kg=500.0, is_locked=True, correction_requested=True, requested_net_weight_kg=515.0, correction_reason="Tare bag scale calibration offset correction", correction_status="pending")
-            db.add(w1)
-            db.commit()
-
-            # Create Sample Audit Trail
-            aud1 = AuditLog(actor_id=u_operator.id, actor_role="operator", entity_type="weighing", entity_id=str(t1.id), action="CORRECTION_REQUEST", old_value="500.0 kg", new_value="515.0 kg", reason="Tare bag scale calibration offset correction")
-            db.add(aud1)
-
-            # Create Sample Issue
-            iss1 = Issue(farmer_id=u_farmer.id, token_id=t1.id, centre_id=c1.id, subject="Weighing scale calibration inquiry", description="Kanta scale tare calculation was showing 5kg difference.", category="Weight", priority="High", ai_suggested_category="Weight", ai_suggested_priority="High", status="open")
-            db.add(iss1)
-            db.commit()
-
-            print("Seed Data successfully initialized!")
+            print("Seed Centres and Base Users successfully initialized!")
     finally:
         db.close()
 
