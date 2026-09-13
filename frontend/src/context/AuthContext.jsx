@@ -22,6 +22,9 @@ export const AuthProvider = ({ children }) => {
       getMeApi(token)
         .then((res) => {
           setUser(res.data);
+          if (res.data?.centre_id) {
+            setSelectedCentreId(res.data.centre_id);
+          }
         })
         .catch(() => {
           logout();
@@ -39,6 +42,9 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('access_token', accessToken);
     setToken(accessToken);
     setUser(userData);
+    if (userData?.centre_id) {
+      setSelectedCentreId(userData.centre_id);
+    }
     return userData;
   };
 
@@ -49,6 +55,9 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('access_token', accessToken);
     setToken(accessToken);
     setUser(userData);
+    if (userData?.centre_id) {
+      setSelectedCentreId(userData.centre_id);
+    }
     return userData;
   };
 

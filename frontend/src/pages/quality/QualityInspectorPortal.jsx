@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { fetchCentreQueue, submitQuality } from '../../services/api';
+import { fetchCentreQueue, submitQuality, fetchCentres } from '../../services/api';
 import {
   Search, FlaskConical, Microscope, ClipboardCheck, Droplets,
-  Wheat, CheckCircle2, Clock, AlertTriangle, FileCheck
+  Wheat, CheckCircle2, Clock, AlertTriangle, FileCheck, Building2
 } from 'lucide-react';
 
 export default function QualityInspectorPortal() {
   const { user, selectedCentreId } = useAuth();
+  const [centres, setCentres] = useState([]);
   const [queue, setQueue] = useState([]);
   const [activeToken, setActiveToken] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -22,14 +23,25 @@ export default function QualityInspectorPortal() {
   const [successMsg, setSuccessMsg] = useState('');
 
   useEffect(() => {
+    loadCentres();
     loadQueue();
     const interval = setInterval(loadQueue, 4000);
     return () => clearInterval(interval);
   }, [selectedCentreId]);
 
+  const loadCentres = async () => {
+    try {
+      const res = await fetchCentres();
+      setCentres(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const loadQueue = async () => {
     try {
-      const res = await fetchCentreQueue(selectedCentreId);
+      const currentCId = user?.centre_id || selectedCentreId || 1;
+      const res = await fetchCentreQueue(currentCId);
       setQueue(res.data);
     } catch (err) {
       console.error(err);
@@ -103,7 +115,7 @@ export default function QualityInspectorPortal() {
 
       {/* Header Banner */}
       <div className="bg-gradient-to-r from-amber-800 to-yellow-900 text-white rounded-3xl p-6 shadow-xl">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <span className="bg-amber-500/20 text-amber-200 text-xs px-3 py-1 rounded-full font-semibold border border-amber-400/30 flex items-center gap-1 w-fit">
               <Microscope className="w-3.5 h-3.5" /> Quality Inspection & Grain Testing Lab
@@ -111,7 +123,20 @@ export default function QualityInspectorPortal() {
             <h2 className="text-2xl font-bold text-white mt-2">Crop Quality Assessment Station</h2>
             <p className="text-xs text-amber-200 mt-1">Moisture Analysis • Foreign Matter Detection • Grain Grading • Inspection Reports</p>
           </div>
-          <FlaskConical className="w-16 h-16 text-amber-300/20" />
+          
+          {/* Active Assigned Centre Card */}
+          <div className="bg-white/10 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/20 text-right">
+            <span className="text-[10px] text-amber-200 uppercase font-semibold block">Assigned Testing Centre</span>
+            <div className="font-bold text-sm text-white flex items-center gap-1.5 justify-end mt-0.5">
+              <Building2 className="w-4 h-4 text-amber-300" />
+              <span>
+                {centres.find(c => c.id === (user?.centre_id || selectedCentreId))?.name || `Centre #${user?.centre_id || selectedCentreId}`}
+              </span>
+            </div>
+            <span className="text-[10px] text-amber-300 font-mono">
+              Centre ID: #{user?.centre_id || selectedCentreId} • {centres.find(c => c.id === (user?.centre_id || selectedCentreId))?.district || 'Haryana'}
+            </span>
+          </div>
         </div>
       </div>
 
