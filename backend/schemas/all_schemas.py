@@ -87,6 +87,7 @@ class BookingResponse(BaseModel):
 # --- Tokens & Queue ---
 class TokenCreate(BaseModel):
     centre_id: int
+    mandi_name: Optional[str] = "Karnal Mandi"
     booking_id: Optional[int] = None
     farmer_id: Optional[int] = None
 
@@ -97,6 +98,7 @@ class TokenDetailResponse(BaseModel):
     token_code: str
     centre_id: int
     farmer_id: int
+    mandi_name: Optional[str] = "Karnal Mandi"
     status: str
     position: int
     estimated_wait_min: float

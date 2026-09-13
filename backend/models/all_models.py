@@ -85,6 +85,7 @@ class Token(Base):
     booking_id = Column(Integer, ForeignKey("bookings.id"), nullable=True)
     centre_id = Column(Integer, ForeignKey("centres.id"), nullable=False)
     farmer_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    mandi_name = Column(String(100), nullable=True, default="Karnal Mandi")
     token_number = Column(Integer, nullable=False)
     token_code = Column(String(30), unique=True, index=True, nullable=False)  # e.g. T-20260908-042
     status = Column(String(30), default="waiting")  # waiting, in_quality, in_weighing, in_procurement, completed, rejected, cancelled

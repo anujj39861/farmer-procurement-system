@@ -17,6 +17,7 @@ export default function CentreOperatorPortal() {
   const [activeToken, setActiveToken] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [selectedMandi, setSelectedMandi] = useState("all");
 
   // Weighing Form
   const [grossWeight, setGrossWeight] = useState(520.0);
@@ -37,7 +38,7 @@ export default function CentreOperatorPortal() {
     loadQueue();
     const interval = setInterval(loadQueue, 4000);
     return () => clearInterval(interval);
-  }, [selectedCentreId, statusFilter]);
+  }, [selectedCentreId, statusFilter, selectedMandi]);
 
   const loadCentres = async () => {
     try {
@@ -51,7 +52,7 @@ export default function CentreOperatorPortal() {
   const loadQueue = async () => {
     try {
       const currentCId = user?.centre_id || selectedCentreId || 1;
-      const res = await fetchCentreQueue(currentCId);
+      const res = await fetchCentreQueue(currentCId, null, selectedMandi);
       let data = res.data;
       if (statusFilter !== "all") {
         data = data.filter(t => t.status === statusFilter);
@@ -217,6 +218,29 @@ export default function CentreOperatorPortal() {
               />
             </div>
             
+            {/* Mandi Selector Tabs */}
+            <div className="flex items-center gap-1 overflow-x-auto pb-1 border-b border-gray-100 pt-1">
+              <span className="text-[10px] font-bold text-gray-500 uppercase mr-1">Mandi:</span>
+              {[
+                { key: 'all', label: 'All Mandis' },
+                { key: 'Karnal Mandi', label: 'Karnal' },
+                { key: 'Ludhiana Mandi', label: 'Ludhiana' },
+                { key: 'Bareilly Mandi', label: 'Bareilly' }
+              ].map(m => (
+                <button
+                  key={m.key}
+                  onClick={() => setSelectedMandi(m.key)}
+                  className={`px-2 py-0.5 rounded-md text-[10px] font-bold whitespace-nowrap transition ${
+                    selectedMandi === m.key
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'bg-blue-50 text-blue-800 hover:bg-blue-100'
+                  }`}
+                >
+                  {m.label}
+                </button>
+              ))}
+            </div>
+
             <div className="flex gap-1 overflow-x-auto pb-1">
               {['all', 'waiting', 'in_quality', 'in_weighing', 'in_procurement'].map(f => (
                 <button
@@ -248,6 +272,9 @@ export default function CentreOperatorPortal() {
                   <div className="font-bold text-gray-900 flex items-center gap-2">
                     <span>Token #{t.token_number}</span>
                     <span className="text-[10px] text-gray-500 font-mono">({t.token_code})</span>
+                    <span className="bg-blue-100 text-blue-900 text-[9px] font-bold px-1.5 py-0.5 rounded">
+                      {t.mandi_name || 'Karnal Mandi'}
+                    </span>
                   </div>
                   <div className="text-gray-500 text-[11px]">{t.farmer_name || 'Farmer Ramesh'} • {t.farmer_phone || '9876543210'}</div>
                 </div>
@@ -273,9 +300,14 @@ export default function CentreOperatorPortal() {
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 space-y-6">
               
               {/* Token Header Banner */}
-              <div className="bg-emerald-900 text-white p-4 rounded-xl flex items-center justify-between">
+              <div className="bg-emerald-900 text-white p-4 rounded-xl flex items-center justify-between flex-wrap gap-2">
                 <div>
-                  <span className="text-xs text-emerald-300 font-medium">Processing Active Farmer Token</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-emerald-300 font-medium">Processing Active Farmer Token</span>
+                    <span className="bg-amber-400 text-emerald-950 font-bold text-[10px] px-2 py-0.5 rounded-full">
+                      {activeToken.mandi_name || 'Karnal Mandi'}
+                    </span>
+                  </div>
                   <h3 className="text-2xl font-bold text-amber-300">Token #{activeToken.token_number}</h3>
                   <p className="text-xs text-emerald-200 font-mono mt-0.5">{activeToken.token_code}</p>
                 </div>

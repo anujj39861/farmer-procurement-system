@@ -9,9 +9,11 @@ from backend.services.queue_service import update_queue_positions
 router = APIRouter(prefix="/api/queue", tags=["Queue"])
 
 @router.get("/{centre_id}", response_model=List[TokenDetailResponse])
-def get_centre_queue(centre_id: int, status: str = None, db: Session = Depends(get_db)):
+def get_centre_queue(centre_id: int, status: str = None, mandi: str = None, db: Session = Depends(get_db)):
     update_queue_positions(db, centre_id)
     query = db.query(Token).filter(Token.centre_id == centre_id)
+    if mandi and mandi != "all":
+        query = query.filter(Token.mandi_name == mandi)
     if status:
         query = query.filter(Token.status == status)
     else:
@@ -27,6 +29,7 @@ def get_centre_queue(centre_id: int, status: str = None, db: Session = Depends(g
             "token_code": t.token_code,
             "centre_id": t.centre_id,
             "farmer_id": t.farmer_id,
+            "mandi_name": t.mandi_name,
             "status": t.status,
             "position": t.position,
             "estimated_wait_min": t.estimated_wait_min,

@@ -16,6 +16,12 @@ export default function FarmerPortal() {
   const { user } = useAuth();
   const [centres, setCentres] = useState([]);
   const [selectedCentre, setSelectedCentre] = useState(user?.centre_id || 1);
+  const MANDI_LIST = [
+    { name: "Karnal Mandi", district: "Karnal, Haryana" },
+    { name: "Ludhiana Mandi", district: "Ludhiana, Punjab" },
+    { name: "Bareilly Mandi", district: "Bareilly, UP" }
+  ];
+  const [selectedMandi, setSelectedMandi] = useState("Karnal Mandi");
   const [currentToken, setCurrentToken] = useState(null);
   const [centreQueue, setCentreQueue] = useState([]);
   const [procurement, setProcurement] = useState(null);
@@ -84,6 +90,7 @@ export default function FarmerPortal() {
     try {
       const tokRes = await createToken({
         centre_id: Number(selectedCentre),
+        mandi_name: selectedMandi,
         farmer_id: user?.id || 1
       });
       setCurrentToken(tokRes.data);
@@ -145,7 +152,10 @@ export default function FarmerPortal() {
               {currentToken && (
                 <>
                   <span className="bg-white/10 text-emerald-200 text-xs px-2.5 py-0.5 rounded-full border border-white/20 font-medium">
-                    Centre: {centres.find(c => c.id === currentToken.centre_id)?.name || `Centre #${currentToken.centre_id}`}
+                    Centre ID: #{currentToken.centre_id}
+                  </span>
+                  <span className="bg-amber-400 text-emerald-950 font-bold text-xs px-2.5 py-0.5 rounded-full shadow-sm">
+                    Mandi: {currentToken.mandi_name || 'Karnal Mandi'}
                   </span>
                   <span className={`text-xs px-2.5 py-0.5 rounded-full font-bold uppercase ${
                     currentToken.delay_risk === 'High' ? 'bg-red-500 text-white' :
@@ -244,39 +254,55 @@ export default function FarmerPortal() {
 
           <form onSubmit={handleBookSlot} className="space-y-4 text-xs">
             <div>
-              <label className="block text-gray-700 font-semibold mb-1">Select Procurement Centre</label>
+              <label className="block text-gray-700 font-semibold mb-1">Select Procurement Centre (Circle)</label>
               <select
                 value={selectedCentre}
                 onChange={(e) => setSelectedCentre(e.target.value)}
                 className="w-full p-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 bg-white font-medium"
               >
                 {centres.map(c => (
-                  <option key={c.id} value={c.id}>{c.name} ({c.district})</option>
+                  <option key={c.id} value={c.id}>Centre ID #{c.id}: {c.name} ({c.district})</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Select Mandi Under This Centre ID */}
+            <div>
+              <label className="block text-gray-700 font-semibold mb-1">Choose Mandi / Collection Point</label>
+              <select
+                value={selectedMandi}
+                onChange={(e) => setSelectedMandi(e.target.value)}
+                className="w-full p-2.5 rounded-xl border border-emerald-500 focus:ring-2 focus:ring-emerald-500 bg-emerald-50/40 font-bold text-emerald-950"
+              >
+                {MANDI_LIST.map(m => (
+                  <option key={m.name} value={m.name}>{m.name} ({m.district})</option>
                 ))}
               </select>
 
-              {/* Live Centre Token Status & Sequence Box */}
-              <div className="mt-2.5 p-3 rounded-xl bg-emerald-50/70 border border-emerald-200/80 text-[11px] space-y-1.5">
+              {/* Live Mandi Token Status & Sequence Box */}
+              <div className="mt-2.5 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-[11px] space-y-1.5">
                 <div className="flex items-center justify-between font-semibold text-emerald-900">
-                  <span>Centre ID: #{selectedCentre} Live Status</span>
-                  <span className="bg-emerald-200/70 text-emerald-900 px-2 py-0.5 rounded-full text-[10px]">
-                    {centreQueue.length} Active in Queue
+                  <span>{selectedMandi} Status (Centre #{selectedCentre})</span>
+                  <span className="bg-emerald-200/80 text-emerald-900 px-2 py-0.5 rounded-full text-[10px]">
+                    {centreQueue.filter(t => (t.mandi_name || 'Karnal Mandi') === selectedMandi).length} Active in Queue
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-gray-600">
-                  <span>Last Issued Token:</span>
+                  <span>Last Issued in this Mandi:</span>
                   <span className="font-bold font-mono text-gray-900">
-                    {centreQueue.length > 0 
-                      ? `#${Math.max(...centreQueue.map(t => t.token_number))}` 
-                      : 'None'}
+                    {(() => {
+                      const mandiTokens = centreQueue.filter(t => (t.mandi_name || 'Karnal Mandi') === selectedMandi);
+                      return mandiTokens.length > 0 ? `#${Math.max(...mandiTokens.map(t => t.token_number))}` : 'None';
+                    })()}
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-emerald-800 font-medium pt-1 border-t border-emerald-200/60">
-                  <span>Next Token for You:</span>
-                  <span className="font-extrabold font-mono text-emerald-700 bg-white px-2 py-0.5 rounded border border-emerald-300">
-                    #{centreQueue.length > 0 
-                      ? Math.max(...centreQueue.map(t => t.token_number)) + 1 
-                      : 1}
+                <div className="flex items-center justify-between text-emerald-800 font-medium pt-1 border-t border-emerald-200/80">
+                  <span>Next Token for You in {selectedMandi}:</span>
+                  <span className="font-extrabold font-mono text-emerald-700 bg-white px-2.5 py-0.5 rounded border border-emerald-400 shadow-sm">
+                    {(() => {
+                      const mandiTokens = centreQueue.filter(t => (t.mandi_name || 'Karnal Mandi') === selectedMandi);
+                      return mandiTokens.length > 0 ? `#${Math.max(...mandiTokens.map(t => t.token_number)) + 1}` : '#1';
+                    })()}
                   </span>
                 </div>
               </div>

@@ -23,7 +23,13 @@ export const registerApi = (data) => api.post('/auth/register', data);
 export const getMeApi = (token) => api.get(`/auth/me?token=${token}`);
 
 export const fetchCentres = () => api.get('/centres');
-export const fetchCentreQueue = (centreId, status) => api.get(`/queue/${centreId}${status ? `?status=${status}` : ''}`);
+export const fetchCentreQueue = (centreId, status, mandi) => {
+  const params = new URLSearchParams();
+  if (status) params.append('status', status);
+  if (mandi) params.append('mandi', mandi);
+  const qs = params.toString();
+  return api.get(`/queue/${centreId}${qs ? `?${qs}` : ''}`);
+};
 export const patchQueueStatus = (tokenId, status, notes) => api.patch(`/queue/${tokenId}`, { status, notes });
 export const createToken = (data) => api.post('/tokens', data);
 export const fetchToken = (tokenId) => api.get(`/tokens/${tokenId}`);

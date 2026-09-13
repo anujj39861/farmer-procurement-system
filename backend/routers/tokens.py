@@ -10,7 +10,8 @@ router = APIRouter(prefix="/api/tokens", tags=["Tokens"])
 @router.post("", response_model=TokenDetailResponse)
 def create_token(tok_in: TokenCreate, db: Session = Depends(get_db)):
     farmer_id = tok_in.farmer_id or 1
-    token = generate_token_for_farmer(db, tok_in.centre_id, farmer_id, tok_in.booking_id)
+    mandi = tok_in.mandi_name or "Karnal Mandi"
+    token = generate_token_for_farmer(db, tok_in.centre_id, farmer_id, tok_in.booking_id, mandi_name=mandi)
     
     farmer = db.query(User).filter(User.id == token.farmer_id).first()
     res_dict = {
@@ -19,6 +20,7 @@ def create_token(tok_in: TokenCreate, db: Session = Depends(get_db)):
         "token_code": token.token_code,
         "centre_id": token.centre_id,
         "farmer_id": token.farmer_id,
+        "mandi_name": token.mandi_name,
         "status": token.status,
         "position": token.position,
         "estimated_wait_min": token.estimated_wait_min,
@@ -41,6 +43,7 @@ def get_farmer_tokens(farmer_id: int, db: Session = Depends(get_db)):
             "token_code": token.token_code,
             "centre_id": token.centre_id,
             "farmer_id": token.farmer_id,
+            "mandi_name": token.mandi_name,
             "status": token.status,
             "position": token.position,
             "estimated_wait_min": token.estimated_wait_min,
@@ -64,6 +67,7 @@ def get_token(token_id: int, db: Session = Depends(get_db)):
         "token_code": token.token_code,
         "centre_id": token.centre_id,
         "farmer_id": token.farmer_id,
+        "mandi_name": token.mandi_name,
         "status": token.status,
         "position": token.position,
         "estimated_wait_min": token.estimated_wait_min,

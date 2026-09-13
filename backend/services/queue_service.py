@@ -3,16 +3,23 @@ from datetime import datetime
 from backend.models.all_models import Token, QueueEvent, Booking, Centre
 from backend.ml.eta_model import eta_predictor
 
-def generate_token_for_farmer(db: Session, centre_id: int, farmer_id: int, booking_id: int = None) -> Token:
-    # Count today's tokens for center
-    today_count = db.query(Token).filter(Token.centre_id == centre_id).count()
-    token_num = today_count + 1
-    today_str = datetime.utcnow().strftime("%Y%m%d")
-    token_code = f"T-{today_str}-{token_num:03d}"
+def generate_token_for_farmer(db: Session, centre_id: int, farmer_id: int, booking_id: int = None, mandi_name: str = "Karnal Mandi") -> Token:
+    mandi = mandi_name or "Karnal Mandi"
+    # Count tokens specifically for this Mandi under this centre
+    mandi_count = db.query(Token).filter(
+        Token.centre_id == centre_id,
+        Token.mandi_name == mandi
+    ).count()
+    token_num = mandi_count + 1
     
-    # Calculate initial position in queue
+    today_str = datetime.utcnow().strftime("%Y%m%d")
+    mandi_prefix = mandi.split()[0][:3].upper() if mandi else "MND"
+    token_code = f"T-{mandi_prefix}-{today_str}-{token_num:03d}"
+    
+    # Calculate initial position in queue for this Mandi
     waiting_count = db.query(Token).filter(
         Token.centre_id == centre_id,
+        Token.mandi_name == mandi,
         Token.status == "waiting"
     ).count()
 
@@ -25,6 +32,7 @@ def generate_token_for_farmer(db: Session, centre_id: int, farmer_id: int, booki
         booking_id=booking_id,
         centre_id=centre_id,
         farmer_id=farmer_id,
+        mandi_name=mandi,
         token_number=token_num,
         token_code=token_code,
         status="waiting",

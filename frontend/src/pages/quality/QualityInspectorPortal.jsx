@@ -12,6 +12,7 @@ export default function QualityInspectorPortal() {
   const [queue, setQueue] = useState([]);
   const [activeToken, setActiveToken] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedMandi, setSelectedMandi] = useState('all');
   const [inspectionsDone, setInspectionsDone] = useState([]);
 
   // Quality Form
@@ -27,7 +28,7 @@ export default function QualityInspectorPortal() {
     loadQueue();
     const interval = setInterval(loadQueue, 4000);
     return () => clearInterval(interval);
-  }, [selectedCentreId]);
+  }, [selectedCentreId, selectedMandi]);
 
   const loadCentres = async () => {
     try {
@@ -41,7 +42,7 @@ export default function QualityInspectorPortal() {
   const loadQueue = async () => {
     try {
       const currentCId = user?.centre_id || selectedCentreId || 1;
-      const res = await fetchCentreQueue(currentCId);
+      const res = await fetchCentreQueue(currentCId, null, selectedMandi);
       setQueue(res.data);
     } catch (err) {
       console.error(err);
@@ -213,6 +214,29 @@ export default function QualityInspectorPortal() {
             />
           </div>
 
+          {/* Mandi Selector Tabs */}
+          <div className="flex items-center gap-1 overflow-x-auto pb-1 border-b border-gray-100">
+            <span className="text-[10px] font-bold text-gray-500 uppercase mr-1">Mandi:</span>
+            {[
+              { key: 'all', label: 'All' },
+              { key: 'Karnal Mandi', label: 'Karnal' },
+              { key: 'Ludhiana Mandi', label: 'Ludhiana' },
+              { key: 'Bareilly Mandi', label: 'Bareilly' }
+            ].map(m => (
+              <button
+                key={m.key}
+                onClick={() => setSelectedMandi(m.key)}
+                className={`px-2 py-0.5 rounded-md text-[10px] font-bold whitespace-nowrap transition ${
+                  selectedMandi === m.key
+                    ? 'bg-amber-600 text-white shadow-sm'
+                    : 'bg-amber-50 text-amber-900 hover:bg-amber-100'
+                }`}
+              >
+                {m.label}
+              </button>
+            ))}
+          </div>
+
           <div className="space-y-2 max-h-[450px] overflow-y-auto pr-1">
             {filteredQueue.length === 0 && (
               <div className="text-center text-gray-400 py-8 text-xs">
@@ -232,7 +256,12 @@ export default function QualityInspectorPortal() {
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="font-bold text-gray-900">Token #{t.token_number}</div>
+                    <div className="font-bold text-gray-900 flex items-center gap-1.5">
+                      <span>Token #{t.token_number}</span>
+                      <span className="bg-amber-100 text-amber-900 text-[9px] font-bold px-1.5 py-0.2 rounded">
+                        {t.mandi_name || 'Karnal Mandi'}
+                      </span>
+                    </div>
                     <div className="text-[11px] text-gray-500 font-mono">{t.token_code}</div>
                     <div className="text-[11px] text-gray-500 mt-0.5">{t.farmer_name || 'Farmer'}</div>
                   </div>
