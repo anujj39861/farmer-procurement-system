@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import {
-  fetchCentreQueue, patchQueueStatus, submitQuality, submitWeighing,
+  fetchCentreQueue, patchQueueStatus, submitWeighing,
   requestWeightCorrection, confirmProcurement
 } from '../../services/api';
 import {
@@ -16,12 +16,6 @@ export default function CentreOperatorPortal() {
   const [activeToken, setActiveToken] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-
-  // Quality Form
-  const [moisture, setMoisture] = useState(12.0);
-  const [foreignMatter, setForeignMatter] = useState(1.0);
-  const [qualityNotes, setQualityNotes] = useState("");
-  const [qualityDone, setQualityDone] = useState(false);
 
   // Weighing Form
   const [grossWeight, setGrossWeight] = useState(520.0);
@@ -61,27 +55,9 @@ export default function CentreOperatorPortal() {
 
   const handleSelectToken = (token) => {
     setActiveToken(token);
-    setQualityDone(false);
     setWeightLocked(false);
   };
 
-  const handleQualitySubmit = async (e) => {
-    e.preventDefault();
-    if (!activeToken) return;
-    try {
-      await submitQuality({
-        token_id: activeToken.id,
-        moisture_pct: Number(moisture),
-        foreign_matter_pct: Number(foreignMatter),
-        evidence_notes: qualityNotes
-      });
-      setQualityDone(true);
-      loadQueue();
-      alert("Quality parameters submitted & verified!");
-    } catch (err) {
-      alert("Error submitting quality parameters");
-    }
-  };
 
   const handleWeighingSubmit = async (e) => {
     e.preventDefault();
@@ -138,6 +114,20 @@ export default function CentreOperatorPortal() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       
+      {/* Header Banner */}
+      <div className="bg-gradient-to-r from-blue-800 to-cyan-900 text-white rounded-3xl p-6 shadow-xl">
+        <div className="flex items-center justify-between">
+          <div>
+            <span className="bg-blue-500/20 text-blue-200 text-xs px-3 py-1 rounded-full font-semibold border border-blue-400/30 flex items-center gap-1 w-fit">
+              <Scale className="w-3.5 h-3.5" /> Scale Operator & Procurement Desk
+            </span>
+            <h2 className="text-2xl font-bold text-white mt-2">Weighing & Procurement Station</h2>
+            <p className="text-xs text-blue-200 mt-1">Queue Management • Scale Weighing • Anti-Manipulation Lock • Procurement Confirmation</p>
+          </div>
+          <Scale className="w-16 h-16 text-blue-300/20" />
+        </div>
+      </div>
+
       {/* Header Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs font-medium">
         <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 flex items-center justify-between">
@@ -145,7 +135,7 @@ export default function CentreOperatorPortal() {
             <span className="text-gray-500 block">Total Tokens in Queue</span>
             <span className="text-2xl font-bold text-gray-900">{queue.length}</span>
           </div>
-          <Users className="w-8 h-8 text-emerald-600 p-1 bg-emerald-50 rounded-xl" />
+          <Users className="w-8 h-8 text-blue-600 p-1 bg-blue-50 rounded-xl" />
         </div>
 
         <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 flex items-center justify-between">
@@ -271,51 +261,11 @@ export default function CentreOperatorPortal() {
                 </div>
               </div>
 
-              {/* Station 1: Quality Inspection Form */}
-              <div className="border border-gray-200 rounded-xl p-4 space-y-3 bg-gray-50/50">
-                <h4 className="font-bold text-gray-900 text-xs flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-emerald-600" /> Station 1: Quality & Grain Testing
-                </h4>
-
-                <form onSubmit={handleQualitySubmit} className="grid grid-cols-2 gap-3 text-xs">
-                  <div>
-                    <label className="block text-gray-700 font-semibold mb-1">Moisture (%)</label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={moisture}
-                      onChange={(e) => setMoisture(e.target.value)}
-                      className="w-full p-2 rounded-lg border border-gray-300"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-gray-700 font-semibold mb-1">Foreign Matter (%)</label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={foreignMatter}
-                      onChange={(e) => setForeignMatter(e.target.value)}
-                      className="w-full p-2 rounded-lg border border-gray-300"
-                    />
-                  </div>
-
-                  <div className="col-span-2">
-                    <button
-                      type="submit"
-                      className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs transition"
-                    >
-                      Save Quality Inspection & Pass
-                    </button>
-                  </div>
-                </form>
-              </div>
-
-              {/* Station 2: Anti-Manipulation Digital Scale Entry */}
-              <div className="border border-gray-200 rounded-xl p-4 space-y-3 bg-gray-50/50">
+              {/* Station 1: Anti-Manipulation Digital Scale Entry */}
+              <div className="border border-blue-200 rounded-xl p-4 space-y-3 bg-blue-50/30">
                 <div className="flex items-center justify-between">
                   <h4 className="font-bold text-gray-900 text-xs flex items-center gap-2">
-                    <Scale className="w-4 h-4 text-amber-600" /> Station 2: Scale Weighing (Anti-Manipulation Lock)
+                    <Scale className="w-4 h-4 text-blue-600" /> Station 1: Scale Weighing (Anti-Manipulation Lock)
                   </h4>
                   <span className="text-[10px] text-gray-400 font-mono">Scale ID: SCALE-KARNAL-01</span>
                 </div>

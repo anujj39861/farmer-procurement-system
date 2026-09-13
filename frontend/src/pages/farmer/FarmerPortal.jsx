@@ -34,7 +34,7 @@ export default function FarmerPortal() {
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadData, 5000);
+    const interval = setInterval(loadData, 3000);
     return () => clearInterval(interval);
   }, [selectedCentre]);
 

@@ -79,6 +79,45 @@ export default function SupervisorPortal() {
         </button>
       </div>
 
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs font-medium">
+        <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 flex items-center justify-between">
+          <div>
+            <span className="text-gray-500 block">Pending Approvals</span>
+            <span className="text-2xl font-bold text-amber-600">{pendingCorrections.length}</span>
+          </div>
+          <FileCheck className="w-8 h-8 text-amber-500 p-1 bg-amber-50 rounded-xl" />
+        </div>
+
+        <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 flex items-center justify-between">
+          <div>
+            <span className="text-gray-500 block">Approved Today</span>
+            <span className="text-2xl font-bold text-emerald-700">
+              {auditLogs.filter(l => l.action?.includes('approved')).length}
+            </span>
+          </div>
+          <CheckCircle2 className="w-8 h-8 text-emerald-500 p-1 bg-emerald-50 rounded-xl" />
+        </div>
+
+        <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 flex items-center justify-between">
+          <div>
+            <span className="text-gray-500 block">Rejected</span>
+            <span className="text-2xl font-bold text-red-600">
+              {auditLogs.filter(l => l.action?.includes('rejected')).length}
+            </span>
+          </div>
+          <XCircle className="w-8 h-8 text-red-500 p-1 bg-red-50 rounded-xl" />
+        </div>
+
+        <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 flex items-center justify-between">
+          <div>
+            <span className="text-gray-500 block">Audit Trail Entries</span>
+            <span className="text-2xl font-bold text-indigo-700">{auditLogs.length}</span>
+          </div>
+          <History className="w-8 h-8 text-indigo-500 p-1 bg-indigo-50 rounded-xl" />
+        </div>
+      </div>
+
       {/* Main Grid: Pending Approvals & AI Anomaly Radar */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         

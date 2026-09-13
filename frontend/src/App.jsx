@@ -4,6 +4,7 @@ import Navbar from './components/Navbar';
 import LoginPage from './pages/auth/LoginPage';
 import FarmerPortal from './pages/farmer/FarmerPortal';
 import CentreOperatorPortal from './pages/centre/CentreOperatorPortal';
+import QualityInspectorPortal from './pages/quality/QualityInspectorPortal';
 import SupervisorPortal from './pages/supervisor/SupervisorPortal';
 import AdminPortal from './pages/admin/AdminPortal';
 
@@ -27,7 +28,8 @@ function MainContent() {
       <Navbar />
       <main className="flex-1 pb-12">
         {user.role === 'farmer' && <FarmerPortal />}
-        {(user.role === 'operator' || user.role === 'quality') && <CentreOperatorPortal />}
+        {user.role === 'operator' && <CentreOperatorPortal />}
+        {user.role === 'quality' && <QualityInspectorPortal />}
         {user.role === 'supervisor' && <SupervisorPortal />}
         {user.role === 'admin' && <AdminPortal />}
       </main>
