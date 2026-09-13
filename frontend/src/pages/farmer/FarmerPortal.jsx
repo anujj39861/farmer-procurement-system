@@ -17,6 +17,7 @@ export default function FarmerPortal() {
   const [centres, setCentres] = useState([]);
   const [selectedCentre, setSelectedCentre] = useState(user?.centre_id || 1);
   const [currentToken, setCurrentToken] = useState(null);
+  const [centreQueue, setCentreQueue] = useState([]);
   const [procurement, setProcurement] = useState(null);
   const [showQR, setShowQR] = useState(false);
 
@@ -45,6 +46,7 @@ export default function FarmerPortal() {
 
       const qRes = await fetchCentreQueue(selectedCentre);
       const queueList = qRes.data || [];
+      setCentreQueue(queueList);
       // Only pick tokens that genuinely belong to the logged-in farmer (latest one first)
       const userTokens = queueList.filter(t => t.farmer_id === user.id);
       const myTok = userTokens.length > 0 ? userTokens[userTokens.length - 1] : null;
@@ -130,12 +132,17 @@ export default function FarmerPortal() {
                 <Ticket className="w-3.5 h-3.5" /> Live Queue Token Status
               </span>
               {currentToken && (
-                <span className={`text-xs px-2.5 py-0.5 rounded-full font-bold uppercase ${
-                  currentToken.delay_risk === 'High' ? 'bg-red-500 text-white' :
-                  currentToken.delay_risk === 'Medium' ? 'bg-amber-400 text-gray-900' : 'bg-emerald-400 text-emerald-950'
-                }`}>
-                  Risk: {currentToken.delay_risk}
-                </span>
+                <>
+                  <span className="bg-white/10 text-emerald-200 text-xs px-2.5 py-0.5 rounded-full border border-white/20 font-medium">
+                    Centre: {centres.find(c => c.id === currentToken.centre_id)?.name || `Centre #${currentToken.centre_id}`}
+                  </span>
+                  <span className={`text-xs px-2.5 py-0.5 rounded-full font-bold uppercase ${
+                    currentToken.delay_risk === 'High' ? 'bg-red-500 text-white' :
+                    currentToken.delay_risk === 'Medium' ? 'bg-amber-400 text-gray-900' : 'bg-emerald-400 text-emerald-950'
+                  }`}>
+                    Risk: {currentToken.delay_risk}
+                  </span>
+                </>
               )}
             </div>
 
@@ -236,6 +243,32 @@ export default function FarmerPortal() {
                   <option key={c.id} value={c.id}>{c.name} ({c.district})</option>
                 ))}
               </select>
+
+              {/* Live Centre Token Status & Sequence Box */}
+              <div className="mt-2.5 p-3 rounded-xl bg-emerald-50/70 border border-emerald-200/80 text-[11px] space-y-1.5">
+                <div className="flex items-center justify-between font-semibold text-emerald-900">
+                  <span>Centre ID: #{selectedCentre} Live Status</span>
+                  <span className="bg-emerald-200/70 text-emerald-900 px-2 py-0.5 rounded-full text-[10px]">
+                    {centreQueue.length} Active in Queue
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-gray-600">
+                  <span>Last Issued Token:</span>
+                  <span className="font-bold font-mono text-gray-900">
+                    {centreQueue.length > 0 
+                      ? `#${Math.max(...centreQueue.map(t => t.token_number))}` 
+                      : 'None'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-emerald-800 font-medium pt-1 border-t border-emerald-200/60">
+                  <span>Next Token for You:</span>
+                  <span className="font-extrabold font-mono text-emerald-700 bg-white px-2 py-0.5 rounded border border-emerald-300">
+                    #{centreQueue.length > 0 
+                      ? Math.max(...centreQueue.map(t => t.token_number)) + 1 
+                      : 1}
+                  </span>
+                </div>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
